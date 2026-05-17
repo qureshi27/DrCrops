@@ -2,17 +2,34 @@
 
 import { motion } from "framer-motion";
 import Link from "next/link";
-import { useT } from "@/lib/i18n/store";
 import { CROPS } from "@/lib/crops";
 
 export function CropsGrid() {
-  const t = useT();
   return (
     <section className="relative mx-auto max-w-7xl px-6 py-24">
       <div className="text-center max-w-2xl mx-auto">
-        <p className="text-sm uppercase tracking-[0.2em] text-ink-dim">Crops</p>
-        <h2 className="mt-3 text-h2 text-gradient">{t("crops.title")}</h2>
-        <p className="mt-3 text-ink-muted">{t("crops.subtitle")}</p>
+        <p className="text-sm uppercase tracking-[0.2em] text-ink-dim">
+          Crops
+          <span dir="rtl" lang="ur" className="ms-2 normal-case tracking-normal">
+            · فصلیں
+          </span>
+        </p>
+        <h2 className="mt-3 text-h2 text-gradient">
+          Built for Pakistan's staple crops
+        </h2>
+        <p dir="rtl" lang="ur" className="mt-2 text-xl text-ink-muted">
+          پاکستان کی اہم فصلوں کے لیے
+        </p>
+        <p className="mt-3 text-ink-muted">
+          Tuned on local varieties, common diseases and provincial spray calendars.
+        </p>
+        <p
+          dir="rtl"
+          lang="ur"
+          className="mt-1 text-sm text-ink-dim leading-loose"
+        >
+          مقامی اقسام، عام بیماریوں اور صوبائی شیڈول کے مطابق
+        </p>
       </div>
 
       <div className="mt-14 grid grid-cols-2 md:grid-cols-5 gap-4">

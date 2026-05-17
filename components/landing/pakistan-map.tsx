@@ -3,10 +3,15 @@
 import Link from "next/link";
 import { motion } from "framer-motion";
 import { ArrowRight, Satellite } from "lucide-react";
-import { useT } from "@/lib/i18n/store";
 
 export function PakistanMapPreview() {
-  const t = useT();
+  const features: { en: string; ur: string }[] = [
+    { en: "NDVI · vegetation health", ur: "این ڈی وی آئی · فصل کی صحت" },
+    { en: "NDWI · water stress", ur: "این ڈی ڈبلیو آئی · پانی کی کمی" },
+    { en: "True-colour imagery, 5-day refresh", ur: "ہر 5 دن کی نئی تصاویر" },
+    { en: "Compare against regional baseline", ur: "علاقائی اوسط سے موازنہ" }
+  ];
+
   return (
     <section className="relative mx-auto max-w-7xl px-6 py-24">
       <div className="card-elevated rounded-lg overflow-hidden relative">
@@ -17,30 +22,49 @@ export function PakistanMapPreview() {
               <Satellite className="size-3" />
               Sentinel-2 · 10m resolution
             </div>
-            <h2 className="mt-5 text-h2 text-gradient">{t("map.title")}</h2>
+            <h2 className="mt-5 text-h2 text-gradient">
+              Satellite intelligence on your fields
+            </h2>
+            <p dir="rtl" lang="ur" className="mt-2 text-xl text-ink-muted">
+              آپ کے کھیتوں پر سیٹلائٹ کی نظر
+            </p>
             <p className="mt-4 text-ink-muted leading-relaxed max-w-md">
-              {t("map.subtitle")}
+              Draw your plot and we'll fetch Sentinel-2 NDVI — the same data
+              agronomists use, free for every farmer.
+            </p>
+            <p
+              dir="rtl"
+              lang="ur"
+              className="mt-2 text-sm text-ink-dim leading-loose max-w-md"
+            >
+              اپنا کھیت نشان زد کریں اور سیٹلائٹ سے فصل کی صحت دیکھیں — ہر کسان کے لیے مفت۔
             </p>
 
             <ul className="mt-8 space-y-3 text-sm">
-              {[
-                "NDVI · vegetation health",
-                "NDWI · water stress",
-                "True-colour imagery, 5-day refresh",
-                "Compare against regional baseline"
-              ].map((f) => (
-                <li key={f} className="flex items-center gap-3 text-ink-muted">
+              {features.map((f) => (
+                <li key={f.en} className="flex items-center gap-3 text-ink-muted">
                   <span className="size-1.5 rounded-full bg-field" />
-                  {f}
+                  <span>{f.en}</span>
+                  <span
+                    dir="rtl"
+                    lang="ur"
+                    className="text-[12px] text-ink-dim"
+                  >
+                    · {f.ur}
+                  </span>
                 </li>
               ))}
             </ul>
 
             <Link
               href="/farm"
-              className="mt-10 inline-flex items-center gap-2 rounded-pill px-6 py-3 text-sm border border-field/60 text-ink hover:bg-field/10 hover:border-field transition"
+              className="mt-10 inline-flex items-baseline gap-2 rounded-pill px-6 py-3 text-sm border border-field/60 text-ink hover:bg-field/10 hover:border-field transition"
             >
-              {t("map.cta")} <ArrowRight className="size-4" />
+              <span>Open My Farm</span>
+              <span dir="rtl" lang="ur" className="text-[12px] text-ink-muted">
+                · میری زمین کھولیں
+              </span>
+              <ArrowRight className="size-4 self-center" />
             </Link>
           </div>
 

@@ -15,13 +15,16 @@ export function CropPicker({
       <button
         onClick={() => onChange(undefined)}
         className={cn(
-          "rounded-pill px-3 py-1.5 text-xs border transition",
+          "rounded-pill px-3 py-1.5 text-xs border transition inline-flex items-baseline gap-1.5",
           !value
             ? "bg-accent text-white border-accent"
             : "border-line text-ink-muted hover:text-ink hover:bg-white/5"
         )}
       >
-        Auto-detect
+        <span>Auto-detect</span>
+        <span dir="rtl" lang="ur" className="text-[10px] opacity-80">
+          · خودکار
+        </span>
       </button>
       {CROPS.map((c) => (
         <button

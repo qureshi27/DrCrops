@@ -78,11 +78,27 @@ export default function FertilizerCalculator() {
         animate={{ opacity: 1, y: 0 }}
         className="mb-8"
       >
-        <p className="text-sm uppercase tracking-[0.2em] text-ink-dim">Calculator</p>
+        <p className="text-sm uppercase tracking-[0.2em] text-ink-dim">
+          Calculator
+          <span dir="rtl" lang="ur" className="ms-2 normal-case tracking-normal">
+            · حساب کتاب
+          </span>
+        </p>
         <h1 className="mt-2 text-4xl font-bold text-gradient">Fertilizer planner</h1>
+        <p dir="rtl" lang="ur" className="mt-2 text-xl text-ink-muted">
+          کھاد کا منصوبہ
+        </p>
         <p className="mt-2 text-ink-muted max-w-2xl">
           Enter your crop, area and (optional) soil test values. We'll work out the
           50 kg bag math for Urea, DAP and SOP — and the cost in PKR.
+        </p>
+        <p
+          dir="rtl"
+          lang="ur"
+          className="mt-1 text-sm text-ink-dim leading-loose max-w-2xl"
+        >
+          اپنی فصل، رقبہ اور (اگر دستیاب ہو) مٹی کی رپورٹ درج کریں۔ ہم یوریا، ڈی اے پی اور
+          ایس او پی کی 50 کلو بوریوں کا حساب اور PKR میں خرچ نکالیں گے۔
         </p>
       </motion.div>
 

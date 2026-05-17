@@ -28,10 +28,21 @@ export default function FarmPage() {
         <h1 className="mt-4 text-4xl font-bold text-gradient">
           Satellite intelligence for your field
         </h1>
+        <p dir="rtl" lang="ur" className="mt-2 text-xl text-ink-muted">
+          آپ کے کھیت پر سیٹلائٹ کی نظر
+        </p>
         <p className="mt-3 text-ink-muted max-w-2xl">
           Draw the outline of your plot below. We fetch the latest NDVI vegetation-health
           imagery from the European Space Agency's Sentinel-2 mission and chart it over
           time so you can spot stress before the eye can.
+        </p>
+        <p
+          dir="rtl"
+          lang="ur"
+          className="mt-2 text-sm text-ink-dim max-w-2xl leading-loose"
+        >
+          نیچے نقشے پر اپنا کھیت بنائیں۔ ہم آپ کو سیٹلائٹ سے فصل کی صحت دکھائیں گے
+          — تاکہ آپ مسئلے کو نظر سے پہلے ہی پہچان لیں۔
         </p>
       </motion.div>
 

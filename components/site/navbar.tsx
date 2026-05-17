@@ -3,21 +3,19 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Sprout } from "lucide-react";
-import { useT } from "@/lib/i18n/store";
 import { LanguageSwitcher } from "./language-switcher";
 import { cn } from "@/lib/utils";
 
-const links = [
-  { href: "/diagnose", key: "nav.diagnose" },
-  { href: "/farm", key: "nav.farm" },
-  { href: "/weather", key: "nav.weather" },
-  { href: "/calculator/fertilizer", key: "nav.calculator" },
-  { href: "/learn", key: "nav.learn" },
-  { href: "/history", key: "nav.history" }
+const links: { href: string; en: string; ur: string }[] = [
+  { href: "/diagnose", en: "Diagnose", ur: "تشخیص" },
+  { href: "/farm", en: "My Farm", ur: "میری زمین" },
+  { href: "/weather", en: "Weather", ur: "موسم" },
+  { href: "/calculator/fertilizer", en: "Fertilizer", ur: "کھاد" },
+  { href: "/learn", en: "Learn", ur: "سیکھیں" },
+  { href: "/history", en: "History", ur: "ریکارڈ" }
 ];
 
 export function Navbar() {
-  const t = useT();
   const path = usePathname();
 
   return (
@@ -39,13 +37,20 @@ export function Navbar() {
                   <Link
                     href={l.href}
                     className={cn(
-                      "px-3 py-1.5 rounded-pill text-sm transition",
+                      "px-3 py-1.5 rounded-pill text-sm transition inline-flex items-baseline gap-1.5",
                       active
                         ? "bg-white/10 text-ink"
                         : "text-ink-muted hover:text-ink hover:bg-white/5"
                     )}
                   >
-                    {t(l.key)}
+                    <span>{l.en}</span>
+                    <span
+                      dir="rtl"
+                      lang="ur"
+                      className="text-[11px] text-ink-dim"
+                    >
+                      · {l.ur}
+                    </span>
                   </Link>
                 </li>
               );
@@ -56,9 +61,12 @@ export function Navbar() {
             <LanguageSwitcher />
             <Link
               href="/diagnose"
-              className="hidden sm:inline-flex items-center rounded-pill px-4 py-1.5 text-sm font-medium bg-accent text-white shadow-glow hover:brightness-110 transition"
+              className="hidden sm:inline-flex items-baseline gap-1.5 rounded-pill px-4 py-1.5 text-sm font-medium bg-accent text-white shadow-glow hover:brightness-110 transition"
             >
-              {t("cta.diagnose")}
+              <span>Diagnose a Plant</span>
+              <span dir="rtl" lang="ur" className="text-[11px] opacity-80">
+                · پودے کی تشخیص
+              </span>
             </Link>
           </div>
         </nav>

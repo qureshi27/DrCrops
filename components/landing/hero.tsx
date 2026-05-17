@@ -3,11 +3,9 @@
 import Link from "next/link";
 import { motion } from "framer-motion";
 import { ArrowRight, Camera, Satellite, Sparkles } from "lucide-react";
-import { useT } from "@/lib/i18n/store";
 import { Badge } from "@/components/ui/badge";
 
 export function Hero() {
-  const t = useT();
   return (
     <section className="relative overflow-hidden">
       <div className="absolute inset-0 bg-mesh" />
@@ -25,7 +23,10 @@ export function Hero() {
             >
               <Badge variant="accent">
                 <Sparkles className="size-3" />
-                {t("hero.eyebrow")}
+                AI Agriculture for Pakistan
+                <span dir="rtl" lang="ur" className="ms-1 opacity-90">
+                  · پاکستان کے کسانوں کے لیے
+                </span>
               </Badge>
             </motion.div>
 
@@ -35,18 +36,43 @@ export function Hero() {
               transition={{ duration: 0.7, delay: 0.1, ease: [0.4, 0, 0.2, 1] }}
               className="text-hero text-gradient"
             >
-              {t("hero.title.a")}
+              Snap. Diagnose.
               <br />
-              <span className="text-accent-gradient">{t("hero.title.b")}</span>
+              <span className="text-accent-gradient">Treat your crop.</span>
             </motion.h1>
+
+            <motion.p
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.7, delay: 0.15, ease: [0.4, 0, 0.2, 1] }}
+              dir="rtl"
+              lang="ur"
+              className="mt-3 text-xl text-ink-muted"
+            >
+              تصویر بنائیں۔ تشخیص کریں۔{" "}
+              <span className="text-accent-glow">اپنی فصل کا علاج کریں۔</span>
+            </motion.p>
 
             <motion.p
               initial={{ opacity: 0, y: 24 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.7, delay: 0.2, ease: [0.4, 0, 0.2, 1] }}
+              transition={{ duration: 0.7, delay: 0.22, ease: [0.4, 0, 0.2, 1] }}
               className="mt-6 text-lg text-ink-muted max-w-xl leading-relaxed"
             >
-              {t("hero.subtitle")}
+              Photograph any leaf, stem, root or fruit — get the disease, severity
+              and treatment in seconds. Built for wheat, rice, cotton, sugarcane,
+              mango and more across Pakistan.
+            </motion.p>
+            <motion.p
+              initial={{ opacity: 0, y: 24 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.7, delay: 0.28, ease: [0.4, 0, 0.2, 1] }}
+              dir="rtl"
+              lang="ur"
+              className="mt-3 text-base text-ink-muted max-w-xl leading-loose"
+            >
+              کسی بھی پتے، تنے، جڑ یا پھل کی تصویر بنائیں — چند سیکنڈ میں بیماری،
+              شدت اور علاج جانیں۔ پاکستان بھر کے کسانوں کے لیے۔
             </motion.p>
 
             <motion.div
@@ -57,18 +83,24 @@ export function Hero() {
             >
               <Link
                 href="/diagnose"
-                className="inline-flex items-center gap-2 rounded-pill px-6 py-3.5 text-sm font-semibold bg-gradient-to-r from-accent to-accent-glow text-black shadow-glow-cyan hover:brightness-110 transition"
+                className="inline-flex items-baseline gap-2 rounded-pill px-6 py-3.5 text-sm font-semibold bg-gradient-to-r from-accent to-accent-glow text-black shadow-glow-cyan hover:brightness-110 transition"
               >
-                <Camera className="size-4" />
-                {t("cta.diagnose")}
-                <ArrowRight className="size-4" />
+                <Camera className="size-4 self-center" />
+                <span>Diagnose a Plant</span>
+                <span dir="rtl" lang="ur" className="text-[12px] opacity-80">
+                  · پودے کی تشخیص
+                </span>
+                <ArrowRight className="size-4 self-center" />
               </Link>
               <Link
                 href="/farm"
-                className="inline-flex items-center gap-2 rounded-pill px-6 py-3.5 text-sm border border-field/60 text-ink hover:bg-field/10 hover:border-field transition"
+                className="inline-flex items-baseline gap-2 rounded-pill px-6 py-3.5 text-sm border border-field/60 text-ink hover:bg-field/10 hover:border-field transition"
               >
-                <Satellite className="size-4 text-field" />
-                {t("map.cta")}
+                <Satellite className="size-4 text-field self-center" />
+                <span>Open My Farm</span>
+                <span dir="rtl" lang="ur" className="text-[12px] text-ink-muted">
+                  · میری زمین کھولیں
+                </span>
               </Link>
             </motion.div>
 
@@ -80,11 +112,11 @@ export function Hero() {
             >
               <Badge>
                 <span className="size-1.5 rounded-full bg-accent-glow animate-pulse-glow" />
-                {t("hero.badge.nim")}
+                Powered by NVIDIA NIM
               </Badge>
               <Badge variant="field">
                 <span className="size-1.5 rounded-full bg-field animate-pulse-glow" />
-                {t("hero.badge.sat")}
+                Sentinel-2 satellite intelligence
               </Badge>
             </motion.div>
           </div>

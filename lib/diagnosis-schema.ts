@@ -26,7 +26,17 @@ export const DiagnosisSchema = z.object({
   }),
   prevention: z.array(z.string()).default([]),
   urgency: z.enum(["routine", "this_week", "immediate"]).default("this_week"),
-  follow_up: z.string().optional()
+  follow_up: z.string().optional(),
+  // Plain-language description of what is visible in the photo:
+  // the plant identity, the plant part shown, the visual context and signs.
+  // Provided in BOTH English and Urdu so a layman can read either.
+  image_description: z
+    .object({
+      plant: z.string().default(""),
+      en: z.string().default(""),
+      ur: z.string().default("")
+    })
+    .default({ plant: "", en: "", ur: "" })
 });
 
 export type Diagnosis = z.infer<typeof DiagnosisSchema>;

@@ -1,10 +1,8 @@
 "use client";
 
-import { useT } from "@/lib/i18n/store";
 import { Sprout, GraduationCap } from "lucide-react";
 
 export function Footer() {
-  const t = useT();
   return (
     <footer className="mt-32 border-t border-line">
       <div className="mx-auto max-w-7xl px-6 py-12 flex flex-col md:flex-row items-start md:items-center gap-6 justify-between">
@@ -13,8 +11,18 @@ export function Footer() {
             <Sprout className="size-4.5" strokeWidth={2.5} />
           </span>
           <div>
-            <p className="text-sm text-ink">{t("footer.tag")}</p>
-            <p className="text-xs text-ink-dim mt-0.5">{t("footer.disclaimer")}</p>
+            <p className="text-sm text-ink">
+              Dr Crops · See Pakistan initiative
+              <span dir="rtl" lang="ur" className="ms-2 text-ink-muted">
+                · سی پاکستان منصوبہ
+              </span>
+            </p>
+            <p className="text-xs text-ink-dim mt-0.5">
+              AI guidance is not a substitute for an agronomist.
+              <span dir="rtl" lang="ur" className="ms-2">
+                · AI رہنمائی ماہرِ زراعت کا متبادل نہیں۔
+              </span>
+            </p>
           </div>
         </div>
 

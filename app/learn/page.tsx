@@ -13,10 +13,25 @@ export default function LearnPage() {
         animate={{ opacity: 1, y: 0 }}
         className="mb-8"
       >
-        <p className="text-sm uppercase tracking-[0.2em] text-ink-dim">Learn</p>
+        <p className="text-sm uppercase tracking-[0.2em] text-ink-dim">
+          Learn
+          <span dir="rtl" lang="ur" className="ms-2 normal-case tracking-normal">
+            · سیکھیں
+          </span>
+        </p>
         <h1 className="mt-2 text-4xl font-bold text-gradient">Disease library</h1>
+        <p dir="rtl" lang="ur" className="mt-2 text-xl text-ink-muted">
+          بیماریوں کی فہرست
+        </p>
         <p className="mt-2 text-ink-muted max-w-2xl">
           Quick reference for the diseases most likely to hit your crop in Pakistan.
+        </p>
+        <p
+          dir="rtl"
+          lang="ur"
+          className="mt-1 text-sm text-ink-dim leading-loose max-w-2xl"
+        >
+          پاکستان میں آپ کی فصل پر آنے والی عام بیماریوں کا فوری حوالہ۔
         </p>
       </motion.div>
 

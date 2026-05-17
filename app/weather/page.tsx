@@ -106,12 +106,27 @@ export default function WeatherPage() {
         className="mb-8 flex items-end justify-between gap-6 flex-wrap"
       >
         <div>
-          <p className="text-sm uppercase tracking-[0.2em] text-ink-dim">Weather</p>
+          <p className="text-sm uppercase tracking-[0.2em] text-ink-dim">
+            Weather
+            <span dir="rtl" lang="ur" className="ms-2 normal-case tracking-normal">
+              · موسم
+            </span>
+          </p>
           <h1 className="mt-2 text-4xl font-bold text-gradient">
             7-day forecast & spray advisor
           </h1>
+          <p dir="rtl" lang="ur" className="mt-2 text-xl text-ink-muted">
+            سات دن کا موسم اور سپرے کا بہترین وقت
+          </p>
           <p className="mt-2 text-ink-muted max-w-2xl">
             Plan irrigation, harvest and spraying with hyper-local weather.
+          </p>
+          <p
+            dir="rtl"
+            lang="ur"
+            className="mt-1 text-sm text-ink-dim leading-loose"
+          >
+            پانی دینے، کٹائی اور سپرے کا منصوبہ مقامی موسم کے مطابق بنائیں۔
           </p>
         </div>
         <button
@@ -174,7 +189,12 @@ export default function WeatherPage() {
           <div className="lg:col-span-7 card-elevated p-6">
             <div className="flex items-center gap-2 mb-2">
               <Sparkles className="size-4 text-field" />
-              <h3 className="font-semibold">Best spray window</h3>
+              <h3 className="font-semibold">
+                Best spray window
+                <span dir="rtl" lang="ur" className="ms-2 text-ink-muted text-xs font-normal">
+                  · سپرے کا بہترین وقت
+                </span>
+              </h3>
             </div>
             {sprayWindow ? (
               <>

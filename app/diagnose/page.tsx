@@ -95,13 +95,29 @@ function DiagnoseInner() {
         transition={{ duration: 0.5 }}
         className="mb-8"
       >
-        <p className="text-sm uppercase tracking-[0.2em] text-ink-dim">Diagnose</p>
+        <p className="text-sm uppercase tracking-[0.2em] text-ink-dim">
+          Diagnose
+          <span dir="rtl" lang="ur" className="ms-2 normal-case tracking-normal">
+            · تشخیص
+          </span>
+        </p>
         <h1 className="mt-2 text-4xl font-bold text-gradient">
           Identify what's wrong with your crop
         </h1>
+        <p dir="rtl" lang="ur" className="mt-2 text-xl text-ink-muted">
+          اپنی فصل کا مسئلہ پہچانیں
+        </p>
         <p className="mt-3 text-ink-muted max-w-2xl">
-          Upload a clear photo of the affected leaf or fruit. The AI returns the
-          disease, severity, and a treatment plan in your language.
+          Upload a clear photo of the affected leaf, root, stem or fruit. The AI
+          returns the disease, severity, and a treatment plan in your language.
+        </p>
+        <p
+          dir="rtl"
+          lang="ur"
+          className="mt-2 text-sm text-ink-dim leading-loose max-w-2xl"
+        >
+          متاثرہ پتے، جڑ، تنے یا پھل کی واضح تصویر اپلوڈ کریں۔ AI آپ کو
+          بیماری، شدت اور علاج بتائے گا۔
         </p>
       </motion.div>
 
@@ -110,6 +126,9 @@ function DiagnoseInner() {
           <div className="card p-6">
             <p className="text-xs uppercase tracking-wider text-ink-dim mb-3">
               Crop (optional)
+              <span dir="rtl" lang="ur" className="ms-2 normal-case tracking-normal">
+                · فصل (اختیاری)
+              </span>
             </p>
             <CropPicker value={crop} onChange={setCrop} />
           </div>
@@ -119,11 +138,14 @@ function DiagnoseInner() {
           <div className="card p-6">
             <label className="text-xs uppercase tracking-wider text-ink-dim">
               Symptoms or notes (optional)
+              <span dir="rtl" lang="ur" className="ms-2 normal-case tracking-normal">
+                · علامات یا تفصیلات (اختیاری)
+              </span>
             </label>
             <textarea
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
-              placeholder="e.g. yellow patches on lower leaves, started 4 days ago after rain"
+              placeholder="e.g. yellow patches on lower leaves, started 4 days ago after rain — مثلاً نچلے پتوں پر زرد دھبے، 4 دن پہلے بارش کے بعد شروع ہوئے"
               className="mt-2 w-full bg-bg-elevated border border-line rounded-md p-3 text-sm text-ink placeholder:text-ink-dim focus:outline-none focus:border-accent/60"
               rows={3}
             />
@@ -133,7 +155,12 @@ function DiagnoseInner() {
             <div className="card border border-red-400/30 bg-red-400/5 p-4 flex gap-3 items-start text-sm">
               <AlertCircle className="size-5 text-red-400 shrink-0 mt-0.5" />
               <div>
-                <p className="text-red-300">Diagnosis failed</p>
+                <p className="text-red-300">
+                  Diagnosis failed
+                  <span dir="rtl" lang="ur" className="ms-2 text-red-300/80">
+                    · تشخیص ناکام
+                  </span>
+                </p>
                 <p className="text-ink-muted mt-1">{error}</p>
               </div>
             </div>
@@ -152,15 +179,21 @@ function DiagnoseInner() {
                 setError(null);
                 window.history.replaceState(null, "", "/diagnose");
               }}
-              className="rounded-pill px-6 py-3 text-sm border border-line text-ink hover:bg-white/5 transition"
+              className="inline-flex items-baseline gap-2 rounded-pill px-6 py-3 text-sm border border-line text-ink hover:bg-white/5 transition"
             >
-              New scan
+              <span>New scan</span>
+              <span dir="rtl" lang="ur" className="text-xs text-ink-muted">
+                · نئی تصویر
+              </span>
             </button>
             <button
               onClick={() => router.push("/history")}
-              className="rounded-pill px-6 py-3 text-sm bg-accent text-white hover:brightness-110 transition"
+              className="inline-flex items-baseline gap-2 rounded-pill px-6 py-3 text-sm bg-accent text-white hover:brightness-110 transition"
             >
-              View history
+              <span>View history</span>
+              <span dir="rtl" lang="ur" className="text-xs opacity-90">
+                · ریکارڈ دیکھیں
+              </span>
             </button>
           </div>
         </>

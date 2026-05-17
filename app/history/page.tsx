@@ -18,10 +18,25 @@ export default function HistoryPage() {
     <div className="mx-auto max-w-7xl px-6 py-12">
       <div className="flex items-end justify-between mb-8 flex-wrap gap-4">
         <div>
-          <p className="text-sm uppercase tracking-[0.2em] text-ink-dim">History</p>
+          <p className="text-sm uppercase tracking-[0.2em] text-ink-dim">
+            History
+            <span dir="rtl" lang="ur" className="ms-2 normal-case tracking-normal">
+              · ریکارڈ
+            </span>
+          </p>
           <h1 className="mt-2 text-4xl font-bold text-gradient">Past scans</h1>
+          <p dir="rtl" lang="ur" className="mt-2 text-xl text-ink-muted">
+            پچھلی تشخیصیں
+          </p>
           <p className="mt-2 text-ink-muted">
             Stored on this device only — never uploaded to a server.
+          </p>
+          <p
+            dir="rtl"
+            lang="ur"
+            className="mt-1 text-sm text-ink-dim leading-loose"
+          >
+            صرف اسی ڈیوائس پر محفوظ — کسی سرور پر نہیں جاتا۔
           </p>
         </div>
         {mounted && scans.length > 0 && (

@@ -43,7 +43,12 @@ JSON schema:
   },
   "prevention": string[],
   "urgency": "routine"|"this_week"|"immediate",
-  "follow_up": string
+  "follow_up": string,
+  "image_description": {
+    "plant": "...",   // common name e.g. "Wheat seedling", "Cotton leaf (mature)", "Mango fruit"
+    "en": "...",      // 2-3 sentences in plain English explaining what is in the photo: plant identity, plant part, visible context and signs
+    "ur": "..."       // SAME 2-3 sentences translated into Urdu script (اردو) — always provided regardless of UI language
+  }
 }`;
 
 export async function POST(req: NextRequest) {
@@ -75,6 +80,8 @@ ${body.notes ? `Farmer notes: ${body.notes}` : ""}
 Look carefully at ALL plant parts visible in the photo (leaves, stems, roots, soil-line area, fruits, flowers). If you see a seedling collapsed at the soil line with rotted stem tissue, consider damping-off. If you see root galls or knots, consider Meloidogyne. Do not default to a leaf disease unless leaves are clearly the affected part.
 
 Translate every human-readable string (disease, symptoms, causes, treatments.*.name/dose/timing/notes, prevention, follow_up) into language code "${lang}". Keep the JSON field NAMES in English. For ur/pa/sd/ps/skr, use the appropriate Arabic-derived script.
+
+For "image_description", ALWAYS fill BOTH "en" and "ur" — provide the same 2-3 sentence narrative in English plain language AND in Urdu script. "plant" should be the simple common name a farmer would use. This is shown to a layman before any other detail, so write warmly and clearly, not in technical jargon.
 
 Return ONLY the JSON object.`;
 
@@ -179,6 +186,16 @@ function coerceDiagnosis(input: unknown): Record<string, unknown> {
   // is_plant default
   if (typeof o.is_plant !== "boolean") o.is_plant = true;
 
+  // image_description shape
+  if (!o.image_description || typeof o.image_description !== "object") {
+    o.image_description = { plant: "", en: "", ur: "" };
+  } else {
+    const d = o.image_description as Record<string, unknown>;
+    if (typeof d.plant !== "string") d.plant = "";
+    if (typeof d.en !== "string") d.en = "";
+    if (typeof d.ur !== "string") d.ur = "";
+  }
+
   return o;
 }
 
@@ -227,6 +244,14 @@ function softFallback(o: Record<string, unknown>): Diagnosis | null {
     )
       ? (o.urgency as Diagnosis["urgency"])
       : "this_week",
-    follow_up: typeof o.follow_up === "string" ? o.follow_up : ""
+    follow_up: typeof o.follow_up === "string" ? o.follow_up : "",
+    image_description: (() => {
+      const d = (o.image_description ?? {}) as Record<string, unknown>;
+      return {
+        plant: typeof d.plant === "string" ? d.plant : "",
+        en: typeof d.en === "string" ? d.en : "",
+        ur: typeof d.ur === "string" ? d.ur : ""
+      };
+    })()
   };
 }
