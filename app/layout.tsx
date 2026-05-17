@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import { Navbar } from "@/components/site/navbar";
 import { Footer } from "@/components/site/footer";
+import { VoiceAssistant } from "@/components/voice/voice-assistant";
 
 export const metadata: Metadata = {
   title: "Dr Crops · AI crop doctor for Pakistan",
@@ -37,6 +38,7 @@ export default function RootLayout({
         <Navbar />
         <main>{children}</main>
         <Footer />
+        <VoiceAssistant />
       </body>
     </html>
   );

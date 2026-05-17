@@ -30,33 +30,53 @@ export function LanguageSwitcher() {
         aria-expanded={open}
       >
         <Globe className="size-4" />
-        <span>{current.native}</span>
+        <span className={current.dir === "rtl" ? "font-medium" : ""}>
+          {current.label}
+        </span>
       </button>
 
       {open && (
         <div
           role="listbox"
-          className="absolute right-0 mt-2 w-48 card-elevated p-1 z-50 animate-fade-up"
+          className="absolute right-0 mt-2 w-72 card-elevated p-2 z-50 animate-fade-up shadow-card"
         >
-          {LOCALES.map((l) => (
-            <button
-              key={l.code}
-              onClick={() => {
-                setLocale(l.code as Locale);
-                setOpen(false);
-              }}
-              className={cn(
-                "w-full flex items-center justify-between px-3 py-2 text-sm rounded-md hover:bg-white/5 transition",
-                l.code === locale ? "text-ink" : "text-ink-muted"
-              )}
-            >
-              <span className="flex items-center gap-2">
-                <span className="text-xs text-ink-dim w-8">{l.code}</span>
-                <span>{l.native}</span>
-              </span>
-              {l.code === locale && <Check className="size-4 text-accent" />}
-            </button>
-          ))}
+          <p className="px-3 py-2 text-[10px] uppercase tracking-[0.2em] text-ink-dim">
+            Choose your language
+          </p>
+          <div className="grid grid-cols-2 gap-1.5">
+            {LOCALES.map((l) => {
+              const active = l.code === locale;
+              return (
+                <button
+                  key={l.code}
+                  onClick={() => {
+                    setLocale(l.code as Locale);
+                    setOpen(false);
+                  }}
+                  className={cn(
+                    "group relative rounded-md px-3 py-3 text-start transition border",
+                    active
+                      ? "bg-accent/10 border-accent/40"
+                      : "bg-bg-elevated border-line hover:border-white/15 hover:bg-white/5"
+                  )}
+                >
+                  <p
+                    dir={l.dir}
+                    className={cn(
+                      "text-base leading-tight",
+                      active ? "text-ink" : "text-ink"
+                    )}
+                  >
+                    {l.native}
+                  </p>
+                  <p className="text-[11px] text-ink-dim mt-1">{l.label}</p>
+                  {active && (
+                    <Check className="absolute top-2 right-2 size-4 text-accent-glow" />
+                  )}
+                </button>
+              );
+            })}
+          </div>
         </div>
       )}
     </div>

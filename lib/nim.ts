@@ -65,21 +65,67 @@ export async function nimChat(opts: ChatOpts) {
   return json.choices[0]?.message?.content ?? "";
 }
 
-/** Extracts the first JSON object found in a model response. */
+/** Extract a JSON object from a model response that may include
+ *  markdown code fences, prose preambles, or trailing commentary. */
 export function extractJSON<T = unknown>(raw: string): T | null {
   if (!raw) return null;
-  // Quick path: parse directly
+
+  // Strip markdown code fences: ```json ... ``` or ``` ... ```
+  let cleaned = raw.trim();
+  const fenceMatch = cleaned.match(/```(?:json)?\s*([\s\S]*?)```/i);
+  if (fenceMatch) cleaned = fenceMatch[1].trim();
+
+  // Quick path: direct parse
   try {
-    return JSON.parse(raw) as T;
+    return JSON.parse(cleaned) as T;
   } catch {
     /* fall through */
   }
-  // Find the first {...} block
-  const match = raw.match(/\{[\s\S]*\}/);
-  if (!match) return null;
+
+  // Brace-balanced scan — handle nested objects and find the largest balanced block.
+  const first = cleaned.indexOf("{");
+  if (first === -1) return null;
+
+  let depth = 0;
+  let inString = false;
+  let escape = false;
+  let bestEnd = -1;
+  for (let i = first; i < cleaned.length; i++) {
+    const c = cleaned[i];
+    if (escape) {
+      escape = false;
+      continue;
+    }
+    if (c === "\\") {
+      escape = true;
+      continue;
+    }
+    if (c === '"') {
+      inString = !inString;
+      continue;
+    }
+    if (inString) continue;
+    if (c === "{") depth++;
+    else if (c === "}") {
+      depth--;
+      if (depth === 0) {
+        bestEnd = i;
+        break;
+      }
+    }
+  }
+  if (bestEnd === -1) return null;
+
+  const candidate = cleaned.slice(first, bestEnd + 1);
   try {
-    return JSON.parse(match[0]) as T;
+    return JSON.parse(candidate) as T;
   } catch {
-    return null;
+    // Last attempt: lenient cleanup — remove trailing commas before } or ]
+    const repaired = candidate.replace(/,\s*([}\]])/g, "$1");
+    try {
+      return JSON.parse(repaired) as T;
+    } catch {
+      return null;
+    }
   }
 }
