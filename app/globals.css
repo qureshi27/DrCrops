@@ -1,0 +1,141 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --bg-base: #000000;
+  --bg-surface: #0A0A0F;
+  --bg-elevated: #13131A;
+  --accent-primary: #4D9BFF;
+  --accent-glow: #00D4FF;
+  --field-border: #FFD600;
+  --text-primary: #FFFFFF;
+  --text-secondary: #B4B4BE;
+  --text-tertiary: #6B6B7A;
+  --border-subtle: rgba(255, 255, 255, 0.08);
+}
+
+* {
+  border-color: var(--border-subtle);
+}
+
+html,
+body {
+  background: var(--bg-base);
+  color: var(--text-primary);
+  font-family: "Inter", system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+::selection {
+  background: rgba(77, 155, 255, 0.35);
+  color: #fff;
+}
+
+/* Background mesh + grid used by the landing hero */
+.bg-mesh {
+  background-image:
+    radial-gradient(60rem 60rem at 80% -10%, rgba(0, 212, 255, 0.18), transparent 60%),
+    radial-gradient(50rem 50rem at -10% 30%, rgba(77, 155, 255, 0.18), transparent 55%),
+    radial-gradient(40rem 40rem at 50% 110%, rgba(255, 214, 0, 0.08), transparent 60%);
+}
+
+.bg-grid {
+  background-image:
+    linear-gradient(rgba(255, 255, 255, 0.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.04) 1px, transparent 1px);
+  background-size: 40px 40px;
+  mask-image: radial-gradient(ellipse at 50% 30%, black 30%, transparent 75%);
+}
+
+.glass {
+  background: rgba(10, 10, 15, 0.55);
+  backdrop-filter: saturate(140%) blur(18px);
+  -webkit-backdrop-filter: saturate(140%) blur(18px);
+  border: 1px solid var(--border-subtle);
+}
+
+.card {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: 1.25rem;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+}
+
+.card-elevated {
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-subtle);
+  border-radius: 1.25rem;
+}
+
+.field-outline {
+  outline: 1.5px solid var(--field-border);
+  outline-offset: 2px;
+  box-shadow: 0 0 0 1px rgba(255, 214, 0, 0.35), 0 0 40px rgba(255, 214, 0, 0.18);
+}
+
+.text-gradient {
+  background: linear-gradient(180deg, #ffffff 0%, #b4b4be 120%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.text-accent-gradient {
+  background: linear-gradient(90deg, #4d9bff 0%, #00d4ff 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+/* Tilted preview cards used by the hero */
+.tilt-card {
+  transform: perspective(1600px) rotateX(14deg) rotateY(-10deg);
+  transform-style: preserve-3d;
+}
+
+.tilt-card-r {
+  transform: perspective(1600px) rotateX(14deg) rotateY(10deg);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tilt-card,
+  .tilt-card-r {
+    transform: none;
+  }
+  .animate-fade-up,
+  .animate-pulse-glow,
+  .animate-grid {
+    animation: none !important;
+  }
+}
+
+/* RTL helpers */
+html[dir="rtl"] body {
+  font-feature-settings: "ss01";
+}
+
+/* TomTom map: container styling. Map canvas itself uses the night style
+   set programmatically after load, so we don't apply CSS filters here
+   (filters would also invert the field polygon colors). */
+.tt-map-container .tt-attribution-container,
+.tt-map-container .tt-logo-container {
+  opacity: 0.7;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.18);
+}
