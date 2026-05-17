@@ -11,6 +11,7 @@ type MapType = "hybrid" | "satellite" | "roadmap" | "terrain";
 declare global {
   interface Window {
     google?: any;
+    gm_authFailure?: () => void;
   }
 }
 
@@ -35,26 +36,53 @@ export function FarmMap({
   const [mapType, setMapType] = useState<MapType>("hybrid");
 
   // Init map once SDK is ready
+  // Google calls this if the API key is rejected (wrong key, domain not
+  // whitelisted, API not enabled, billing not active). Wire it up once,
+  // even before the script attempts to load, so we can surface the cause.
+  useEffect(() => {
+    window.gm_authFailure = () => {
+      setInitError(
+        "AUTH_FAILED: Google rejected the Maps API key. Likely cause: this domain isn't on the key's HTTP referrer allowlist, OR the Maps JavaScript API isn't enabled on the key's Google Cloud project, OR billing isn't active."
+      );
+    };
+    return () => {
+      try {
+        delete window.gm_authFailure;
+      } catch {}
+    };
+  }, []);
+
   useEffect(() => {
     if (!sdkReady || !containerRef.current || mapRef.current) return;
-    const g = window.google;
-    if (!g?.maps?.importLibrary) {
-      setInitError(
-        "Google Maps bootstrap did not expose importLibrary. Confirm the API key is correct and the Maps JavaScript API is enabled."
-      );
-      return;
-    }
 
     let cancelled = false;
 
+    // Give the bootstrap a brief grace period to register importLibrary.
+    const waitForImportLibrary = async (timeoutMs = 4000) => {
+      const start = Date.now();
+      while (Date.now() - start < timeoutMs) {
+        if (window.google?.maps?.importLibrary) return true;
+        await new Promise((r) => setTimeout(r, 80));
+        if (cancelled) return false;
+      }
+      return false;
+    };
+
     (async () => {
       try {
+        const ok = await waitForImportLibrary();
+        if (cancelled) return;
+        if (!ok) {
+          setInitError(
+            "Google Maps loaded but did not expose importLibrary within 4s. Open the Network tab and inspect the response from maps.googleapis.com/maps/api/js — if it returned an error script, your API key is rejected. Common fixes: enable the Maps JavaScript API on the key's project, add this domain to the key's HTTP referrers, and ensure billing is active."
+          );
+          return;
+        }
+        const g = window.google;
         // With loading=async, the Map constructor and other classes are
         // only available AFTER importLibrary("maps") resolves. Calling
         // `new google.maps.Map(...)` directly throws "Map is not a constructor".
         await g.maps.importLibrary("maps");
-        // The Marker symbol is also in the maps library; SymbolPath is on
-        // google.maps after import.
         if (cancelled || !containerRef.current) return;
 
         const map = new g.maps.Map(containerRef.current, {
@@ -283,18 +311,7 @@ export function FarmMap({
           </div>
         )}
 
-        {initError && (
-          <div className="absolute inset-4 grid place-items-center">
-            <div className="card border border-red-400/30 bg-red-400/5 p-4 text-sm max-w-md text-center">
-              <p className="text-red-300 font-medium">Map failed to initialise</p>
-              <p className="text-ink-muted text-xs mt-1">{initError}</p>
-              <p className="text-ink-dim text-[11px] mt-2">
-                Common causes: invalid key, domain not whitelisted in Google Cloud,
-                or the Maps JavaScript API isn't enabled on the key's project.
-              </p>
-            </div>
-          </div>
-        )}
+        {initError && <InitErrorCard message={initError} />}
 
         {/* Floating toolbar */}
 {/* (toolbar continues below) */}
@@ -565,6 +582,81 @@ function CoordinatePanel({
           </ul>
         </div>
       )}
+    </div>
+  );
+}
+
+function InitErrorCard({ message }: { message: string }) {
+  const host =
+    typeof window !== "undefined" ? window.location.host : "your-domain";
+  return (
+    <div className="absolute inset-4 grid place-items-center">
+      <div className="card border border-red-400/30 bg-red-400/5 p-5 text-sm max-w-xl">
+        <p className="text-red-300 font-medium">Map failed to initialise</p>
+        <p className="text-ink-muted text-xs mt-1">{message}</p>
+
+        <p className="text-ink mt-4 text-xs font-semibold uppercase tracking-wider">
+          Checklist
+        </p>
+        <ol className="mt-2 list-decimal list-inside text-[12px] text-ink-muted space-y-2 leading-relaxed">
+          <li>
+            Google Cloud Console · <em>APIs & Services › Library</em> → search{" "}
+            <span className="text-ink">Maps JavaScript API</span> →{" "}
+            <span className="text-ink">Enable</span> for the project that owns
+            this API key.
+          </li>
+          <li>
+            Same project · <em>APIs & Services › Credentials</em> → open the
+            API key → <em>Application restrictions</em>:
+            <ul className="mt-1 ms-5 list-disc text-ink-dim text-[11px] space-y-0.5">
+              <li>
+                Select <span className="text-ink">HTTP referrers (websites)</span>
+              </li>
+              <li>
+                Add{" "}
+                <code className="font-mono text-ink">https://{host}/*</code>
+              </li>
+              <li>
+                Add{" "}
+                <code className="font-mono text-ink">
+                  https://*.vercel.app/*
+                </code>
+                {" "}so preview deployments work too
+              </li>
+              <li>
+                For local dev add{" "}
+                <code className="font-mono text-ink">http://localhost:*/*</code>
+              </li>
+            </ul>
+          </li>
+          <li>
+            <em>API restrictions</em> on the same key → allow at least{" "}
+            <span className="text-ink">Maps JavaScript API</span>.
+          </li>
+          <li>
+            Make sure the Cloud project has{" "}
+            <span className="text-ink">Billing</span> enabled — Maps refuses to
+            serve without it.
+          </li>
+          <li>
+            On Vercel ·{" "}
+            <em>Project › Settings › Environment Variables</em> →{" "}
+            <code className="font-mono text-ink">
+              NEXT_PUBLIC_GOOGLE_MAPS_API_KEY
+            </code>{" "}
+            is set → <span className="text-ink">Redeploy</span> so the value is
+            baked into the static bundle.
+          </li>
+        </ol>
+        <p className="text-ink-dim text-[11px] mt-4">
+          Tip: open DevTools → Network tab → reload → find the request to
+          <code className="font-mono text-ink mx-1">
+            maps.googleapis.com/maps/api/js
+          </code>
+          and inspect the response. If it's an error script you'll see Google's
+          rejection message at the top of it.
+        </p>
+      </div>
     </div>
   );
 }
