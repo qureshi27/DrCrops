@@ -38,38 +38,57 @@ export function FarmMap({
   useEffect(() => {
     if (!sdkReady || !containerRef.current || mapRef.current) return;
     const g = window.google;
-    if (!g?.maps) return;
-
-    try {
-      const map = new g.maps.Map(containerRef.current, {
-        center: PK_CENTER,
-        zoom: 5,
-        mapTypeId: mapType,
-        disableDefaultUI: false,
-        zoomControl: true,
-        streetViewControl: false,
-        fullscreenControl: false,
-        mapTypeControl: false,
-        clickableIcons: false,
-        backgroundColor: "#0A0A0F",
-        gestureHandling: "greedy",
-        tilt: 0
-      });
-      mapRef.current = map;
-
-      clickListenerRef.current = map.addListener("click", (e: any) => {
-        if (!drawingRef.current) return;
-        if (!e?.latLng) return;
-        const lngLat: LngLat = [e.latLng.lng(), e.latLng.lat()];
-        setPoints((p) => [...p, lngLat]);
-      });
-    } catch (e) {
-      const msg = e instanceof Error ? e.message : String(e);
-      console.error("Google Maps init failed", e);
-      setInitError(msg);
+    if (!g?.maps?.importLibrary) {
+      setInitError(
+        "Google Maps bootstrap did not expose importLibrary. Confirm the API key is correct and the Maps JavaScript API is enabled."
+      );
+      return;
     }
 
+    let cancelled = false;
+
+    (async () => {
+      try {
+        // With loading=async, the Map constructor and other classes are
+        // only available AFTER importLibrary("maps") resolves. Calling
+        // `new google.maps.Map(...)` directly throws "Map is not a constructor".
+        await g.maps.importLibrary("maps");
+        // The Marker symbol is also in the maps library; SymbolPath is on
+        // google.maps after import.
+        if (cancelled || !containerRef.current) return;
+
+        const map = new g.maps.Map(containerRef.current, {
+          center: PK_CENTER,
+          zoom: 5,
+          mapTypeId: mapType,
+          disableDefaultUI: false,
+          zoomControl: true,
+          streetViewControl: false,
+          fullscreenControl: false,
+          mapTypeControl: false,
+          clickableIcons: false,
+          backgroundColor: "#0A0A0F",
+          gestureHandling: "greedy",
+          tilt: 0
+        });
+        mapRef.current = map;
+
+        clickListenerRef.current = map.addListener("click", (e: any) => {
+          if (!drawingRef.current) return;
+          if (!e?.latLng) return;
+          const lngLat: LngLat = [e.latLng.lng(), e.latLng.lat()];
+          setPoints((p) => [...p, lngLat]);
+        });
+      } catch (e) {
+        if (cancelled) return;
+        const msg = e instanceof Error ? e.message : String(e);
+        console.error("Google Maps init failed", e);
+        setInitError(msg);
+      }
+    })();
+
     return () => {
+      cancelled = true;
       try {
         clickListenerRef.current?.remove();
       } catch {}
