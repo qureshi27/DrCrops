@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import Script from "next/script";
-import { Crosshair, Eraser, Layers, Loader2, Sparkles } from "lucide-react";
+import { Crosshair, Eraser, Layers, Loader2, MapPin, Plus, Sparkles, Trash2 } from "lucide-react";
 
 const PK_CENTER = { lat: 30.4, lng: 70.3 }; // geographic centre of Pakistan
 type LngLat = [number, number];
@@ -174,18 +174,44 @@ export function FarmMap({
     );
   }
 
-  const scriptSrc = `https://maps.googleapis.com/maps/api/js?key=${encodeURIComponent(
-    apiKey
-  )}&v=weekly&loading=async`;
+  function jumpTo(lat: number, lng: number) {
+    if (!isValidCoord(lat, lng)) return false;
+    mapRef.current?.panTo({ lng, lat });
+    mapRef.current?.setZoom(17);
+    return true;
+  }
+
+  function addVertex(lat: number, lng: number) {
+    if (!isValidCoord(lat, lng)) return false;
+    setPoints((p) => [...p, [lng, lat] as LngLat]);
+    mapRef.current?.panTo({ lng, lat });
+    if ((mapRef.current?.getZoom?.() ?? 5) < 12) {
+      mapRef.current?.setZoom(15);
+    }
+    return true;
+  }
+
+  function removeVertex(idx: number) {
+    setPoints((p) => p.filter((_, i) => i !== idx));
+  }
+
+  const trimmedKey = (apiKey || "").trim();
+  const scriptSrc = trimmedKey
+    ? `https://maps.googleapis.com/maps/api/js?key=${encodeURIComponent(
+        trimmedKey
+      )}&v=weekly&loading=async`
+    : "";
 
   return (
     <>
-      <Script
-        src={scriptSrc}
-        strategy="afterInteractive"
-        onLoad={() => setSdkReady(true)}
-        onError={() => setInitError("Failed to load Google Maps SDK")}
-      />
+      {trimmedKey && (
+        <Script
+          src={scriptSrc}
+          strategy="afterInteractive"
+          onLoad={() => setSdkReady(true)}
+          onError={() => setInitError("Failed to load Google Maps SDK")}
+        />
+      )}
       <div className="relative card-elevated overflow-hidden">
         <div
           ref={containerRef}
@@ -193,9 +219,48 @@ export function FarmMap({
           style={{ background: "#0A0A0F" }}
         />
 
-        {!sdkReady && !initError && (
+        {!sdkReady && !initError && trimmedKey && (
           <div className="absolute inset-0 grid place-items-center text-ink-dim pointer-events-none">
             <Loader2 className="size-6 animate-spin" />
+          </div>
+        )}
+
+        {!trimmedKey && (
+          <div className="absolute inset-4 grid place-items-center">
+            <div className="card border border-yellow-400/30 bg-yellow-400/5 p-5 text-sm max-w-lg">
+              <p className="text-yellow-200 font-medium">
+                Google Maps API key missing
+              </p>
+              <p
+                dir="rtl"
+                lang="ur"
+                className="text-ink-muted text-xs mt-1"
+              >
+                گوگل میپس کی کلید موجود نہیں
+              </p>
+              <p className="text-ink-muted text-xs mt-3 leading-relaxed">
+                Set <code className="font-mono text-ink">NEXT_PUBLIC_GOOGLE_MAPS_API_KEY</code>
+                {" "}in your Vercel project settings (or in a local{" "}
+                <code className="font-mono text-ink">.env</code>).
+              </p>
+              <ol className="mt-3 list-decimal list-inside text-[11px] text-ink-dim space-y-1">
+                <li>
+                  Vercel · Project · Settings · Environment Variables → add
+                  <code className="font-mono text-ink mx-1">
+                    NEXT_PUBLIC_GOOGLE_MAPS_API_KEY
+                  </code>
+                  with your key.
+                </li>
+                <li>Redeploy the project so the value is baked in.</li>
+                <li>
+                  In Google Cloud, allow your Vercel domain (e.g.
+                  <code className="font-mono text-ink mx-1">
+                    *.vercel.app
+                  </code>
+                  and your custom domain) under <em>Application restrictions</em>.
+                </li>
+              </ol>
+            </div>
           </div>
         )}
 
@@ -205,15 +270,15 @@ export function FarmMap({
               <p className="text-red-300 font-medium">Map failed to initialise</p>
               <p className="text-ink-muted text-xs mt-1">{initError}</p>
               <p className="text-ink-dim text-[11px] mt-2">
-                Check that <code className="font-mono">VITE_GOOGLE_MAPS_API_KEY</code>
-                {" "}(or <code className="font-mono">NEXT_PUBLIC_GOOGLE_MAPS_API_KEY</code>)
-                is set in your <code className="font-mono">.env</code>.
+                Common causes: invalid key, domain not whitelisted in Google Cloud,
+                or the Maps JavaScript API isn't enabled on the key's project.
               </p>
             </div>
           </div>
         )}
 
         {/* Floating toolbar */}
+{/* (toolbar continues below) */}
         <div className="absolute top-4 left-4 right-4 flex flex-wrap gap-2 justify-between pointer-events-none">
           <div className="pointer-events-auto glass rounded-pill px-3 py-2 text-xs text-ink-muted">
             {drawing ? (
@@ -261,7 +326,238 @@ export function FarmMap({
           </div>
         </div>
       </div>
+
+      {/* Coordinate entry panel */}
+      <CoordinatePanel
+        points={points}
+        onJump={jumpTo}
+        onAdd={addVertex}
+        onRemove={removeVertex}
+        onClearAll={clearAll}
+        onCommit={commit}
+        drawing={drawing}
+      />
     </>
+  );
+}
+
+function CoordinatePanel({
+  points,
+  onJump,
+  onAdd,
+  onRemove,
+  onClearAll,
+  onCommit,
+  drawing
+}: {
+  points: LngLat[];
+  onJump: (lat: number, lng: number) => boolean;
+  onAdd: (lat: number, lng: number) => boolean;
+  onRemove: (idx: number) => void;
+  onClearAll: () => void;
+  onCommit: () => void;
+  drawing: boolean;
+}) {
+  const [lat, setLat] = useState("");
+  const [lng, setLng] = useState("");
+  const [feedback, setFeedback] = useState<{ kind: "ok" | "err"; msg: string } | null>(
+    null
+  );
+
+  function parseInputs(): { lat: number; lng: number } | null {
+    const la = parseFloat(lat);
+    const ln = parseFloat(lng);
+    if (!isValidCoord(la, ln)) {
+      setFeedback({
+        kind: "err",
+        msg: "Enter valid coordinates · صحیح مقامات درج کریں (lat −90..90, lng −180..180)"
+      });
+      return null;
+    }
+    return { lat: la, lng: ln };
+  }
+
+  function handleJump() {
+    const p = parseInputs();
+    if (!p) return;
+    if (onJump(p.lat, p.lng)) {
+      setFeedback({
+        kind: "ok",
+        msg: `Map centred on ${p.lat.toFixed(5)}, ${p.lng.toFixed(5)}`
+      });
+    }
+  }
+
+  function handleAdd() {
+    const p = parseInputs();
+    if (!p) return;
+    if (onAdd(p.lat, p.lng)) {
+      setFeedback({
+        kind: "ok",
+        msg: `Vertex added · نشان شامل ہو گیا (${p.lat.toFixed(5)}, ${p.lng.toFixed(5)})`
+      });
+      setLat("");
+      setLng("");
+    }
+  }
+
+  return (
+    <div className="mt-4 card p-5">
+      <div className="flex items-start justify-between gap-3 flex-wrap mb-4">
+        <div>
+          <h3 className="text-sm font-semibold flex items-center gap-2">
+            <MapPin className="size-4 text-field" />
+            Enter coordinates
+            <span dir="rtl" lang="ur" className="ms-1 text-ink-muted text-xs font-normal">
+              · مقامات درج کریں
+            </span>
+          </h3>
+          <p className="text-xs text-ink-dim mt-1 leading-relaxed">
+            Type latitude and longitude (from a GPS device, survey paper, or
+            phone). Use "Go to" to centre the map, or "Add vertex" to push the
+            point onto your polygon.
+          </p>
+          <p
+            dir="rtl"
+            lang="ur"
+            className="text-[11px] text-ink-dim mt-1 leading-loose"
+          >
+            اپنے GPS یا سروے سے عرض البلد اور طول البلد لکھیں۔ "Go to" سے نقشہ
+            وہاں جائے گا، "Add vertex" سے کھیت کے کونے میں اضافہ ہو گا۔
+          </p>
+        </div>
+      </div>
+
+      <div className="grid sm:grid-cols-12 gap-3 items-end">
+        <label className="sm:col-span-4">
+          <span className="text-[10px] uppercase tracking-wider text-ink-dim">
+            Latitude
+            <span dir="rtl" lang="ur" className="ms-1 normal-case tracking-normal">
+              · عرض البلد
+            </span>
+          </span>
+          <input
+            type="number"
+            step="0.000001"
+            inputMode="decimal"
+            value={lat}
+            onChange={(e) => setLat(e.target.value)}
+            placeholder="e.g. 31.5497"
+            className="mt-1 w-full bg-bg-elevated border border-line rounded-md px-3 py-2 text-sm font-mono text-ink focus:outline-none focus:border-accent/60"
+          />
+        </label>
+        <label className="sm:col-span-4">
+          <span className="text-[10px] uppercase tracking-wider text-ink-dim">
+            Longitude
+            <span dir="rtl" lang="ur" className="ms-1 normal-case tracking-normal">
+              · طول البلد
+            </span>
+          </span>
+          <input
+            type="number"
+            step="0.000001"
+            inputMode="decimal"
+            value={lng}
+            onChange={(e) => setLng(e.target.value)}
+            placeholder="e.g. 74.3436"
+            className="mt-1 w-full bg-bg-elevated border border-line rounded-md px-3 py-2 text-sm font-mono text-ink focus:outline-none focus:border-accent/60"
+          />
+        </label>
+        <div className="sm:col-span-4 flex gap-2">
+          <button
+            onClick={handleJump}
+            className="flex-1 rounded-pill px-3 py-2 text-xs border border-line text-ink hover:bg-white/5 transition inline-flex items-center justify-center gap-1.5"
+          >
+            <Crosshair className="size-3.5" />
+            Go to
+          </button>
+          <button
+            onClick={handleAdd}
+            className="flex-1 rounded-pill px-3 py-2 text-xs bg-gradient-to-r from-accent to-accent-glow text-black font-medium hover:brightness-110 transition inline-flex items-center justify-center gap-1.5"
+          >
+            <Plus className="size-3.5" />
+            Add vertex
+          </button>
+        </div>
+      </div>
+
+      {feedback && (
+        <p
+          className={`mt-3 text-[11px] ${
+            feedback.kind === "ok" ? "text-emerald-300" : "text-red-300"
+          }`}
+        >
+          {feedback.msg}
+        </p>
+      )}
+
+      {/* Vertex list */}
+      {points.length > 0 && (
+        <div className="mt-5 border-t border-line pt-4">
+          <div className="flex items-center justify-between mb-3">
+            <p className="text-xs uppercase tracking-wider text-ink-dim">
+              Polygon vertices ({points.length})
+              <span dir="rtl" lang="ur" className="ms-2 normal-case tracking-normal">
+                · کھیت کے کونے
+              </span>
+            </p>
+            <div className="flex gap-2">
+              <button
+                onClick={onClearAll}
+                className="text-[11px] text-ink-dim hover:text-red-300 inline-flex items-center gap-1"
+              >
+                <Trash2 className="size-3" />
+                Reset all
+              </button>
+              {drawing && points.length >= 3 && (
+                <button
+                  onClick={onCommit}
+                  className="text-[11px] text-accent-glow hover:text-accent inline-flex items-center gap-1"
+                >
+                  <Sparkles className="size-3" />
+                  Analyse field
+                </button>
+              )}
+            </div>
+          </div>
+          <ul className="grid sm:grid-cols-2 lg:grid-cols-3 gap-2 text-[11px] font-mono">
+            {points.map((p, i) => (
+              <li
+                key={i}
+                className="card-elevated rounded-md px-3 py-2 flex items-center justify-between gap-2"
+              >
+                <span className="flex items-center gap-2">
+                  <span className="size-4 grid place-items-center rounded-full bg-field/20 text-field text-[9px] font-semibold font-sans">
+                    {i + 1}
+                  </span>
+                  <span className="text-ink">
+                    {p[1].toFixed(5)}, {p[0].toFixed(5)}
+                  </span>
+                </span>
+                <button
+                  onClick={() => onRemove(i)}
+                  className="text-ink-dim hover:text-red-300"
+                  aria-label="Remove vertex"
+                >
+                  <Trash2 className="size-3" />
+                </button>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function isValidCoord(lat: number, lng: number) {
+  return (
+    Number.isFinite(lat) &&
+    Number.isFinite(lng) &&
+    lat >= -90 &&
+    lat <= 90 &&
+    lng >= -180 &&
+    lng <= 180
   );
 }
 

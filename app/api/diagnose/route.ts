@@ -48,6 +48,20 @@ JSON schema:
     "plant": "...",   // common name e.g. "Wheat seedling", "Cotton leaf (mature)", "Mango fruit"
     "en": "...",      // 2-3 sentences in plain English explaining what is in the photo: plant identity, plant part, visible context and signs
     "ur": "..."       // SAME 2-3 sentences translated into Urdu script (اردو) — always provided regardless of UI language
+  },
+  "translations": {
+    "ur": {
+      "disease": "...",                              // Urdu translation of "disease" above
+      "symptoms": ["...", "..."],                    // Urdu translations, SAME ORDER AND LENGTH as the English "symptoms" array
+      "causes": ["...", "..."],                      // Urdu translations, SAME ORDER AND LENGTH as the English "causes" array
+      "treatments": {
+        "organic":    [{"name":"...","dose":"...","timing":"...","notes":"..."}],   // Urdu, SAME ORDER AND LENGTH as English treatments.organic
+        "biological": [{"name":"...","active_ingredient":"...","dose":"...","timing":"...","notes":"..."}],
+        "chemical":   [{"name":"...","active_ingredient":"...","dose":"...","timing":"...","notes":"..."}]
+      },
+      "prevention": ["...", "..."],                  // Urdu translations, SAME ORDER AND LENGTH as English "prevention" array
+      "follow_up": "..."                             // Urdu translation of "follow_up"
+    }
   }
 }`;
 
@@ -79,16 +93,19 @@ ${body.notes ? `Farmer notes: ${body.notes}` : ""}
 
 Look carefully at ALL plant parts visible in the photo (leaves, stems, roots, soil-line area, fruits, flowers). If you see a seedling collapsed at the soil line with rotted stem tissue, consider damping-off. If you see root galls or knots, consider Meloidogyne. Do not default to a leaf disease unless leaves are clearly the affected part.
 
-Translate every human-readable string (disease, symptoms, causes, treatments.*.name/dose/timing/notes, prevention, follow_up) into language code "${lang}". Keep the JSON field NAMES in English. For ur/pa/sd/ps/skr, use the appropriate Arabic-derived script.
-
-For "image_description", ALWAYS fill BOTH "en" and "ur" — provide the same 2-3 sentence narrative in English plain language AND in Urdu script. "plant" should be the simple common name a farmer would use. This is shown to a layman before any other detail, so write warmly and clearly, not in technical jargon.
+Language requirements — STRICT:
+1. The TOP-LEVEL human-readable strings (disease, symptoms, causes, treatments.*.name/dose/timing/notes, prevention, follow_up) must be written in **English**.
+2. The "translations.ur" block must contain the SAME content fully translated into **Urdu (Arabic-derived script, اردو)** — preserving the same array order and the same array length as the English fields, so that index i in English corresponds to index i in Urdu.
+3. For "image_description", ALWAYS fill BOTH "en" and "ur" — the same 2-3 sentence narrative in plain English and in Urdu. "plant" should be the simple common name a farmer would use (e.g. "Wheat seedling", "Cotton leaf").
+4. Keep the JSON field NAMES themselves in English.
+5. Write warmly and clearly for a layman — avoid technical jargon when describing the photo.
 
 Return ONLY the JSON object.`;
 
     const raw = await nimChat({
       model: NIM_MODELS.visionLarge,
       temperature: 0.12,
-      max_tokens: 2200,
+      max_tokens: 3200,
       messages: [
         { role: "system", content: SYSTEM },
         {
@@ -196,6 +213,39 @@ function coerceDiagnosis(input: unknown): Record<string, unknown> {
     if (typeof d.ur !== "string") d.ur = "";
   }
 
+  // translations.ur shape
+  const emptyUr = {
+    disease: "",
+    symptoms: [] as string[],
+    causes: [] as string[],
+    treatments: { organic: [], biological: [], chemical: [] },
+    prevention: [] as string[],
+    follow_up: ""
+  };
+  if (!o.translations || typeof o.translations !== "object") {
+    o.translations = { ur: emptyUr };
+  } else {
+    const tr = o.translations as Record<string, unknown>;
+    if (!tr.ur || typeof tr.ur !== "object") {
+      tr.ur = emptyUr;
+    } else {
+      const ur = tr.ur as Record<string, unknown>;
+      if (typeof ur.disease !== "string") ur.disease = "";
+      if (!Array.isArray(ur.symptoms)) ur.symptoms = [];
+      if (!Array.isArray(ur.causes)) ur.causes = [];
+      if (!Array.isArray(ur.prevention)) ur.prevention = [];
+      if (typeof ur.follow_up !== "string") ur.follow_up = "";
+      if (!ur.treatments || typeof ur.treatments !== "object") {
+        ur.treatments = { organic: [], biological: [], chemical: [] };
+      } else {
+        const t = ur.treatments as Record<string, unknown>;
+        for (const k of ["organic", "biological", "chemical"]) {
+          if (!Array.isArray(t[k])) t[k] = [];
+        }
+      }
+    }
+  }
+
   return o;
 }
 
@@ -251,6 +301,25 @@ function softFallback(o: Record<string, unknown>): Diagnosis | null {
         plant: typeof d.plant === "string" ? d.plant : "",
         en: typeof d.en === "string" ? d.en : "",
         ur: typeof d.ur === "string" ? d.ur : ""
+      };
+    })(),
+    translations: (() => {
+      const tr = (o.translations ?? {}) as Record<string, unknown>;
+      const ur = (tr.ur ?? {}) as Record<string, unknown>;
+      const t = (ur.treatments ?? {}) as Record<string, unknown>;
+      return {
+        ur: {
+          disease: typeof ur.disease === "string" ? ur.disease : "",
+          symptoms: Array.isArray(ur.symptoms) ? (ur.symptoms as string[]) : [],
+          causes: Array.isArray(ur.causes) ? (ur.causes as string[]) : [],
+          treatments: {
+            organic: Array.isArray(t.organic) ? (t.organic as Diagnosis["treatments"]["organic"]) : [],
+            biological: Array.isArray(t.biological) ? (t.biological as Diagnosis["treatments"]["biological"]) : [],
+            chemical: Array.isArray(t.chemical) ? (t.chemical as Diagnosis["treatments"]["chemical"]) : []
+          },
+          prevention: Array.isArray(ur.prevention) ? (ur.prevention as string[]) : [],
+          follow_up: typeof ur.follow_up === "string" ? ur.follow_up : ""
+        }
       };
     })()
   };

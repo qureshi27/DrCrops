@@ -10,7 +10,7 @@ import {
   ShieldCheck,
   Image as ImageIcon
 } from "lucide-react";
-import type { Diagnosis } from "@/lib/diagnosis-schema";
+import type { Diagnosis, Treatment } from "@/lib/diagnosis-schema";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 
@@ -131,8 +131,17 @@ export function ResultView({
                 <span dir="rtl" lang="ur" className="ms-2 normal-case tracking-normal">· تشخیص</span>
               </p>
               <h2 className="mt-1 text-2xl font-semibold">{diagnosis.disease}</h2>
+              {diagnosis.translations?.ur?.disease && (
+                <p
+                  dir="rtl"
+                  lang="ur"
+                  className="text-base text-ink-muted mt-1"
+                >
+                  {diagnosis.translations.ur.disease}
+                </p>
+              )}
               {diagnosis.scientific_name && (
-                <p className="text-sm text-ink-muted italic">
+                <p className="text-sm text-ink-muted italic mt-1">
                   {diagnosis.scientific_name}
                 </p>
               )}
@@ -156,37 +165,38 @@ export function ResultView({
           </div>
 
           {diagnosis.follow_up && (
-            <p className="mt-4 text-sm text-ink leading-relaxed border-l-2 border-field/60 ps-3">
-              {diagnosis.follow_up}
-            </p>
+            <div className="mt-4 border-l-2 border-field/60 ps-3 space-y-2">
+              <p className="text-sm text-ink leading-relaxed">
+                {diagnosis.follow_up}
+              </p>
+              {diagnosis.translations?.ur?.follow_up && (
+                <p
+                  dir="rtl"
+                  lang="ur"
+                  className="text-sm text-ink-muted leading-loose"
+                >
+                  {diagnosis.translations.ur.follow_up}
+                </p>
+              )}
+            </div>
           )}
         </div>
 
         {/* Symptoms / Causes */}
         <div className="grid md:grid-cols-2 gap-4">
           <Section titleEn="Symptoms" titleUr="علامات" icon={<ImageIcon className="size-4" />}>
-            {diagnosis.symptoms.length ? (
-              <ul className="space-y-2 text-sm">
-                {diagnosis.symptoms.map((s, i) => (
-                  <li key={i} className="flex gap-2 text-ink-muted">
-                    <span className="size-1.5 rounded-full bg-accent-glow mt-1.5 shrink-0" />
-                    {s}
-                  </li>
-                ))}
-              </ul>
-            ) : null}
+            <BilingualList
+              en={diagnosis.symptoms}
+              ur={diagnosis.translations?.ur?.symptoms ?? []}
+              dotClass="bg-accent-glow"
+            />
           </Section>
           <Section titleEn="Causes" titleUr="وجوہات" icon={<AlertTriangle className="size-4" />}>
-            {diagnosis.causes.length ? (
-              <ul className="space-y-2 text-sm">
-                {diagnosis.causes.map((s, i) => (
-                  <li key={i} className="flex gap-2 text-ink-muted">
-                    <span className="size-1.5 rounded-full bg-field mt-1.5 shrink-0" />
-                    {s}
-                  </li>
-                ))}
-              </ul>
-            ) : null}
+            <BilingualList
+              en={diagnosis.causes}
+              ur={diagnosis.translations?.ur?.causes ?? []}
+              dotClass="bg-field"
+            />
           </Section>
         </div>
 
@@ -202,6 +212,7 @@ export function ResultView({
               urTitle="نامیاتی"
               icon={<Leaf className="size-4 text-emerald-400" />}
               items={diagnosis.treatments.organic}
+              urItems={diagnosis.translations?.ur?.treatments?.organic ?? []}
               tint="emerald"
             />
             <TreatCol
@@ -209,6 +220,7 @@ export function ResultView({
               urTitle="حیاتیاتی"
               icon={<TestTube2 className="size-4 text-accent-glow" />}
               items={diagnosis.treatments.biological}
+              urItems={diagnosis.translations?.ur?.treatments?.biological ?? []}
               tint="cyan"
             />
             <TreatCol
@@ -216,6 +228,7 @@ export function ResultView({
               urTitle="کیمیائی"
               icon={<ShieldCheck className="size-4 text-field" />}
               items={diagnosis.treatments.chemical}
+              urItems={diagnosis.translations?.ur?.treatments?.chemical ?? []}
               tint="field"
             />
           </div>
@@ -233,19 +246,58 @@ export function ResultView({
                 </span>
               </h3>
             </div>
-            <ul className="grid sm:grid-cols-2 gap-2 text-sm">
-              {diagnosis.prevention.map((p, i) => (
-                <li key={i} className="flex gap-2 text-ink-muted">
-                  <span className="size-1.5 rounded-full bg-emerald-400 mt-1.5 shrink-0" />
-                  {p}
-                </li>
-              ))}
-            </ul>
+            <BilingualList
+              en={diagnosis.prevention}
+              ur={diagnosis.translations?.ur?.prevention ?? []}
+              dotClass="bg-emerald-400"
+              twoCol
+            />
           </div>
         )}
         </div>
       </div>
     </div>
+  );
+}
+
+function BilingualList({
+  en,
+  ur,
+  dotClass,
+  twoCol
+}: {
+  en: string[];
+  ur: string[];
+  dotClass: string;
+  twoCol?: boolean;
+}) {
+  if (!en.length) return null;
+  return (
+    <ul
+      className={cn(
+        "space-y-3 text-sm",
+        twoCol && "grid sm:grid-cols-2 gap-3 space-y-0"
+      )}
+    >
+      {en.map((s, i) => (
+        <li key={i} className="flex gap-2 text-ink-muted">
+          <span
+            className={cn(
+              "size-1.5 rounded-full mt-1.5 shrink-0",
+              dotClass
+            )}
+          />
+          <div className="space-y-1 leading-relaxed">
+            <p className="text-ink">{s}</p>
+            {ur[i] && (
+              <p dir="rtl" lang="ur" className="text-ink-muted text-[13px]">
+                {ur[i]}
+              </p>
+            )}
+          </div>
+        </li>
+      ))}
+    </ul>
   );
 }
 
@@ -281,12 +333,14 @@ function TreatCol({
   urTitle,
   icon,
   items,
+  urItems,
   tint
 }: {
   title: string;
   urTitle: string;
   icon: React.ReactNode;
-  items: { name: string; dose?: string; timing?: string; notes?: string; active_ingredient?: string }[];
+  items: Treatment[];
+  urItems: Treatment[];
   tint: "emerald" | "cyan" | "field";
 }) {
   const ring =
@@ -306,33 +360,78 @@ function TreatCol({
           </span>
         </h4>
       </div>
-      <div className="space-y-3">
+      <div className="space-y-4">
         {items.length === 0 && (
-          <p className="text-xs text-ink-dim">No {title.toLowerCase()} option suggested.</p>
+          <p className="text-xs text-ink-dim">
+            No {title.toLowerCase()} option suggested.
+          </p>
         )}
-        {items.map((t, i) => (
-          <div key={i} className="text-sm">
-            <p className="text-ink">{t.name}</p>
-            {t.active_ingredient && (
-              <p className="text-[11px] text-ink-dim mt-0.5 italic">
-                {t.active_ingredient}
-              </p>
-            )}
-            {t.dose && (
-              <p className="text-xs text-ink-muted mt-1">
-                <span className="text-ink-dim">Dose:</span> {t.dose}
-              </p>
-            )}
-            {t.timing && (
-              <p className="text-xs text-ink-muted">
-                <span className="text-ink-dim">Timing:</span> {t.timing}
-              </p>
-            )}
-            {t.notes && (
-              <p className="text-xs text-ink-dim mt-1 leading-snug">{t.notes}</p>
-            )}
-          </div>
-        ))}
+        {items.map((t, i) => {
+          const u = urItems[i];
+          return (
+            <div key={i} className="text-sm space-y-1">
+              <p className="text-ink font-medium">{t.name}</p>
+              {u?.name && (
+                <p
+                  dir="rtl"
+                  lang="ur"
+                  className="text-ink-muted text-[13px]"
+                >
+                  {u.name}
+                </p>
+              )}
+              {t.active_ingredient && (
+                <p className="text-[11px] text-ink-dim italic">
+                  {t.active_ingredient}
+                </p>
+              )}
+              {t.dose && (
+                <div>
+                  <p className="text-xs text-ink-muted">
+                    <span className="text-ink-dim">Dose:</span> {t.dose}
+                  </p>
+                  {u?.dose && (
+                    <p
+                      dir="rtl"
+                      lang="ur"
+                      className="text-[11px] text-ink-dim leading-relaxed"
+                    >
+                      <span className="text-ink-dim">مقدار:</span> {u.dose}
+                    </p>
+                  )}
+                </div>
+              )}
+              {t.timing && (
+                <div>
+                  <p className="text-xs text-ink-muted">
+                    <span className="text-ink-dim">Timing:</span> {t.timing}
+                  </p>
+                  {u?.timing && (
+                    <p
+                      dir="rtl"
+                      lang="ur"
+                      className="text-[11px] text-ink-dim leading-relaxed"
+                    >
+                      <span className="text-ink-dim">وقت:</span> {u.timing}
+                    </p>
+                  )}
+                </div>
+              )}
+              {t.notes && (
+                <p className="text-xs text-ink-dim leading-snug">{t.notes}</p>
+              )}
+              {u?.notes && (
+                <p
+                  dir="rtl"
+                  lang="ur"
+                  className="text-[11px] text-ink-dim leading-relaxed"
+                >
+                  {u.notes}
+                </p>
+              )}
+            </div>
+          );
+        })}
       </div>
     </div>
   );

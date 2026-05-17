@@ -8,6 +8,30 @@ export const TreatmentSchema = z.object({
   notes: z.string().optional()
 });
 
+const UrdurTranslationsSchema = z
+  .object({
+    disease: z.string().default(""),
+    symptoms: z.array(z.string()).default([]),
+    causes: z.array(z.string()).default([]),
+    treatments: z
+      .object({
+        organic: z.array(TreatmentSchema).default([]),
+        biological: z.array(TreatmentSchema).default([]),
+        chemical: z.array(TreatmentSchema).default([])
+      })
+      .default({ organic: [], biological: [], chemical: [] }),
+    prevention: z.array(z.string()).default([]),
+    follow_up: z.string().default("")
+  })
+  .default({
+    disease: "",
+    symptoms: [],
+    causes: [],
+    treatments: { organic: [], biological: [], chemical: [] },
+    prevention: [],
+    follow_up: ""
+  });
+
 export const DiagnosisSchema = z.object({
   is_plant: z.boolean().default(true),
   crop: z.string().nullable().optional(),
@@ -36,7 +60,24 @@ export const DiagnosisSchema = z.object({
       en: z.string().default(""),
       ur: z.string().default("")
     })
-    .default({ plant: "", en: "", ur: "" })
+    .default({ plant: "", en: "", ur: "" }),
+  // Parallel Urdu translation of the main diagnosis fields. Always populated
+  // so the result view can show English + Urdu side-by-side everywhere.
+  translations: z
+    .object({
+      ur: UrdurTranslationsSchema
+    })
+    .default({
+      ur: {
+        disease: "",
+        symptoms: [],
+        causes: [],
+        treatments: { organic: [], biological: [], chemical: [] },
+        prevention: [],
+        follow_up: ""
+      }
+    })
 });
 
 export type Diagnosis = z.infer<typeof DiagnosisSchema>;
+export type Treatment = z.infer<typeof TreatmentSchema>;
